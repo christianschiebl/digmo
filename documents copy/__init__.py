@@ -1,3 +1,0 @@
-# Dokumenten-App: Templates & Kundendokumente.
-
-
