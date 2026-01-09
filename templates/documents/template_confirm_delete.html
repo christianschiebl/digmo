@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Template löschen{% endblock %}
+
+{% block content %}
+<div class="max-w-xl">
+    <h1 class="text-2xl font-semibold text-gray-900 mb-2">Template löschen</h1>
+    <p class="text-sm text-gray-500 mb-4">
+        Sind Sie sicher, dass Sie dieses Dokument-Template dauerhaft löschen möchten?
+    </p>
+
+    <div class="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm text-sm text-gray-700">
+        <p class="mb-1">
+            <span class="font-semibold">Name:</span>
+            {{ object.name }}
+        </p>
+        <p class="mb-1">
+            <span class="font-semibold">Typ:</span>
+            {{ object.get_type_display }}
+        </p>
+        <p class="mb-1">
+            <span class="font-semibold">Erstellt:</span>
+            {{ object.created_at|date:"d.m.Y H:i" }}
+        </p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex items-center justify-end gap-3">
+            <a href="{% url 'documenttemplate_list' %}"
+               class="text-sm text-gray-500 hover:text-gray-700">
+                Abbrechen
+            </a>
+            <button type="submit"
+                    class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700">
+                Ja, Template löschen
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+

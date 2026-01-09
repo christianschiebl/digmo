@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Invite ungültig{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center">
+    <div class="w-full max-w-lg">
+        <div class="rounded-2xl border border-red-100 bg-red-50 p-6 shadow-sm text-center">
+            <h1 class="text-xl font-semibold text-red-700 mb-2">Invite-Link ungültig</h1>
+            <p class="text-sm text-red-700 mb-3">
+                Dieser Invite-Link ist abgelaufen oder wurde bereits verwendet.
+            </p>
+            <p class="text-xs text-red-600">
+                Bitte wenden Sie sich an Ihren Makler, um einen neuen Link zur Selbstauskunft zu erhalten.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+

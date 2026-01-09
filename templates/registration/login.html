@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center min-h-[calc(100vh-56px)]">
+    <div class="w-full max-w-md">
+        <div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+            <h1 class="text-xl font-semibold text-gray-900 mb-1">Anmeldung</h1>
+            <p class="text-sm text-gray-500 mb-4">Melden Sie sich mit Ihrer Makler-E-Mail an, um das Dashboard zu nutzen.</p>
+
+            {% if form.non_field_errors %}
+                <div role="alert" class="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {% for error in form.non_field_errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" novalidate class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="mb-1 block text-sm font-medium text-gray-700">
+                        E-Mail
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.username.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="mb-1 block text-sm font-medium text-gray-700">
+                        Passwort
+                    </label>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                        <p class="mt-1 text-xs text-red-600">
+                            {{ form.password.errors.0 }}
+                        </p>
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="w-full inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-1">
+                    Einloggen
+                </button>
+            </form>
+        </div>
+
+        <p class="mt-4 text-center text-xs text-gray-400">
+            Phase 1: Nur Makler-Login und Dashboard-Layout sind aktiv.
+        </p>
+    </div>
+</div>
+{% endblock %}
+

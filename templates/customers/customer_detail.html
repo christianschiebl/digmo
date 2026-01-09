@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Kunde – {{ customer.last_name }}, {{ customer.first_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">
+            {{ customer.last_name }}, {{ customer.first_name }}
+        </h1>
+        <p class="text-sm text-gray-500">
+            Selbstauskunft für {{ customer.email }} – Status: {{ customer.get_status_display }}.
+        </p>
+    </div>
+    <a href="{% url 'customer_update' customer.pk %}"
+       class="inline-flex items-center rounded-lg bg-gray-100 px-4 py-2 text-sm font-medium text-gray-800 hover:bg-gray-200">
+        Stammdaten bearbeiten
+    </a>
+</div>
+
+<div class="mb-4 border-b border-gray-200">
+    <nav class="-mb-px flex space-x-4 text-sm">
+        <a href="?tab=overview"
+           class="border-b-2 px-3 py-2 font-medium {% if active_tab == 'documents' %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% else %}border-indigo-500 text-indigo-600{% endif %}">
+            Überblick
+        </a>
+        <a href="?tab=documents"
+           class="border-b-2 px-3 py-2 font-medium {% if active_tab == 'documents' %}border-indigo-500 text-indigo-600{% else %}border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300{% endif %}">
+            Dokumente
+        </a>
+    </nav>
+</div>
+
+{% if active_tab != 'documents' %}
+<div id="tab-overview" class="tab-panel">
+    <div class="grid gap-4 md:grid-cols-3 mb-6">
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:col-span-2">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Kontaktdaten</h2>
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-700">
+            <div>
+                <dt class="text-gray-500">Name</dt>
+                <dd>{{ customer.first_name }} {{ customer.last_name }}</dd>
+            </div>
+            <div>
+                <dt class="text-gray-500">E-Mail</dt>
+                <dd>{{ customer.email }}</dd>
+            </div>
+            <div>
+                <dt class="text-gray-500">Telefon</dt>
+                <dd>{{ customer.phone|default:"–" }}</dd>
+            </div>
+            <div>
+                <dt class="text-gray-500">Adresse</dt>
+                <dd>
+                    {% if customer.street or customer.postal_code or customer.city %}
+                        {{ customer.street }}<br>
+                        {{ customer.postal_code }} {{ customer.city }}
+                    {% else %}
+                        –
+                    {% endif %}
+                </dd>
+            </div>
+            <div>
+                <dt class="text-gray-500">Beschäftigungsstatus</dt>
+                <dd>{{ customer.employment_status|default:"–" }}</dd>
+            </div>
+            <div>
+                <dt class="text-gray-500">Monatliches Nettoeinkommen</dt>
+                <dd>
+                    {% if customer.monthly_income %}
+                        {{ customer.monthly_income }} €
+                    {% else %}
+                        –
+                    {% endif %}
+                </dd>
+            </div>
+        </dl>
+        </div>
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Invite-Link</h2>
+        {% if active_invite %}
+            <p class="text-xs text-gray-500 mb-2">
+                Aktiver Link, gültig bis {{ active_invite.expires_at|date:"d.m.Y H:i" }}.
+            </p>
+            <div class="mb-3">
+                <label class="text-xs font-medium text-gray-500 block mb-1">Invite-URL</label>
+                <input type="text"
+                       readonly
+                       class="w-full rounded-md border border-gray-200 bg-gray-50 px-2 py-1 text-xs text-gray-700"
+                       value="{{ active_invite_url }}">
+            </div>
+        {% else %}
+            <p class="text-xs text-gray-500 mb-3">
+                Es ist aktuell kein aktiver Invite vorhanden. Erstellen Sie einen neuen Link, um den Kunden
+                zur Selbstauskunft einzuladen (Gültigkeit {{ invite_expiry_days }} Tage).
+            </p>
+        {% endif %}
+
+        <form method="post" action="{% url 'customer_invite' customer.pk %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="w-full inline-flex items-center justify-center rounded-lg bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+                Neuen Invite-Link erzeugen
+            </button>
+        </form>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+    <h2 class="text-sm font-semibold text-gray-900 mb-3">Invite-Historie</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Erstellt</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ablauf</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Verwendet</th>
+                    <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                {% for invite in invites %}
+                    <tr>
+                        <td class="px-3 py-2 text-gray-700">
+                            {{ invite.created_at|date:"d.m.Y H:i" }}
+                        </td>
+                        <td class="px-3 py-2 text-gray-700">
+                            {{ invite.expires_at|date:"d.m.Y H:i" }}
+                        </td>
+                        <td class="px-3 py-2 text-gray-700">
+                            {% if invite.used_at %}
+                                {{ invite.used_at|date:"d.m.Y H:i" }}
+                            {% else %}
+                                –
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2">
+                            {% if invite.is_active %}
+                                <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                                    Aktiv
+                                </span>
+                            {% elif invite.used_at %}
+                                <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+                                    Verwendet
+                                </span>
+                            {% else %}
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                    Abgelaufen
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" class="px-3 py-4 text-center text-gray-500">
+                            Noch keine Invites für diesen Kunden erzeugt.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if active_tab == 'documents' %}
+<div id="tab-documents" class="tab-panel">
+    <div class="mb-4 flex items-center justify-between">
+        <div>
+            <h2 class="text-sm font-semibold text-gray-900">Dokumente</h2>
+            <p class="text-xs text-gray-500">
+                Hochgeladene oder generierte Dokumente für diesen Kunden.
+            </p>
+        </div>
+        <div class="flex items-center gap-2">
+            <a href="{% url 'customer_autofill' customer.pk %}"
+               class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-medium text-white hover:bg-emerald-700">
+                Autofill
+            </a>
+            <a href="{% url 'customer_document_add' customer.pk %}"
+               class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700">
+                Dokument hinzufügen
+            </a>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Erstellt
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Dateiname
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Datei
+                        </th>
+                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Aktionen
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for doc in documents %}
+                        <tr>
+                            <td class="px-3 py-2 text-gray-700">
+                                {{ doc.created_at|date:"d.m.Y H:i" }}
+                            </td>
+                            <td class="px-3 py-2 text-gray-700">
+                                {{ doc.filename|default:"–" }}
+                            </td>
+                            <td class="px-3 py-2">
+                                <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                    {{ doc.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-2 text-gray-700">
+                                {% if doc.generated_file %}
+                                    <a href="{{ doc.generated_file.url }}"
+                                       class="text-indigo-600 hover:text-indigo-800"
+                                       target="_blank">
+                                        Generiert
+                                    </a>
+                                {% elif doc.uploaded_file %}
+                                    <a href="{{ doc.uploaded_file.url }}"
+                                       class="text-indigo-600 hover:text-indigo-800"
+                                       target="_blank">
+                                        Upload
+                                    </a>
+                                {% else %}
+                                    –
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-2 text-right text-sm space-x-3">
+                                <a href="{% url 'customer_document_edit' doc.pk %}"
+                                   class="text-gray-600 hover:text-gray-900">
+                                    Status bearbeiten
+                                </a>
+                                <a href="{% url 'customer_document_delete' doc.pk %}"
+                                   class="text-red-600 hover:text-red-800">
+                                    Löschen
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-3 py-4 text-center text-gray-500">
+                                Noch keine Dokumente für diesen Kunden vorhanden.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Dokument-Templates{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">Dokument-Templates</h1>
+        <p class="text-sm text-gray-500">
+            Templates für DOCX- und PDF-AcroForm-Dokumente, die später für das Autofill genutzt werden.
+        </p>
+    </div>
+    <a href="{% url 'documenttemplate_create' %}"
+       class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+        Neues Template hochladen
+    </a>
+</div>
+
+<div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Typ</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Datei</th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+            {% for tpl in templates %}
+                <tr>
+                    <td class="px-4 py-2 text-gray-900">{{ tpl.name }}</td>
+                    <td class="px-4 py-2 text-gray-700">{{ tpl.get_type_display }}</td>
+                    <td class="px-4 py-2 text-gray-700">
+                        {% if tpl.file %}
+                            <a href="{{ tpl.file.url }}" class="text-indigo-600 hover:text-indigo-800" target="_blank">
+                                Herunterladen
+                            </a>
+                        {% else %}
+                            –
+                        {% endif %}
+                    </td>
+                    <td class="px-4 py-2 text-right space-x-3">
+                        <a href="{% url 'documenttemplate_update' tpl.pk %}"
+                           class="text-gray-600 hover:text-gray-800">Bearbeiten</a>
+                        <a href="{% url 'documenttemplate_delete' tpl.pk %}"
+                           class="text-red-600 hover:text-red-800">Löschen</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+                        Noch keine Templates vorhanden. Legen Sie das erste Dokument-Template an.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+

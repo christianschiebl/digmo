@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block title %}Reminders{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">Reminders</h1>
+        <p class="text-sm text-gray-500">
+            Reminder-Regeln für automatische E-Mail-Erinnerungen sowie die letzten Reminder-Logs.
+        </p>
+    </div>
+    <a href="{% url 'reminderrule_create' %}"
+       class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+        Neue Regel anlegen
+    </a>
+</div>
+
+<div class="grid gap-4 md:grid-cols-2 mb-6">
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Reminder-Regeln</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Ereignis
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Tage danach
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Brevo Template
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Aktiv
+                        </th>
+                        <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Aktionen
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for rule in rules %}
+                        <tr>
+                            <td class="px-3 py-2 text-gray-700">
+                                {{ rule.get_trigger_event_display }}
+                            </td>
+                            <td class="px-3 py-2 text-gray-700">
+                                {{ rule.days_after }}
+                            </td>
+                            <td class="px-3 py-2 text-gray-700">
+                                {% if rule.brevo_template_id %}
+                                    {{ rule.brevo_template_id }}
+                                {% else %}
+                                    –
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-2">
+                                {% if rule.enabled %}
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                                        Aktiv
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                        Inaktiv
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-2 text-right text-sm">
+                                <a href="{% url 'reminderrule_update' rule.pk %}"
+                                   class="text-indigo-600 hover:text-indigo-800">
+                                    Bearbeiten
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-3 py-4 text-center text-gray-500">
+                                Noch keine Reminder-Regeln angelegt.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <h2 class="text-sm font-semibold text-gray-900 mb-3">Letzte Reminder-Logs</h2>
+        <p class="text-xs text-gray-500 mb-2">
+            Die letzten 20 Reminder-Ausführungen dieses Maklers.
+        </p>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Fällig am
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Kunde
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Dokument
+                        </th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Status
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    {% for log in logs %}
+                        <tr>
+                            <td class="px-3 py-2 text-gray-700">
+                                {{ log.due_at|date:"d.m.Y H:i" }}
+                            </td>
+                            <td class="px-3 py-2 text-gray-700">
+                                {{ log.customer.first_name }} {{ log.customer.last_name }}
+                            </td>
+                            <td class="px-3 py-2 text-gray-700">
+                                {% if log.document %}
+                                    {{ log.document.filename|default:"Dokument #"|add:log.document.id }}
+                                {% else %}
+                                    –
+                                {% endif %}
+                            </td>
+                            <td class="px-3 py-2">
+                                {% if log.status == 'sent' %}
+                                    <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                                        Gesendet
+                                    </span>
+                                {% elif log.status == 'failed' %}
+                                    <span class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-700">
+                                        Fehlgeschlagen
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-700">
+                                        Ausstehend
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" class="px-3 py-4 text-center text-gray-500">
+                                Noch keine Reminder-Logs vorhanden.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+

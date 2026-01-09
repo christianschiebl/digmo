@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Meine Dokumente{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl md:text-3xl font-semibold text-gray-900 mb-1">Meine Unterlagen</h1>
+    <p class="text-sm text-gray-500">
+        Hier sehen Sie Ihre bei DigifyNow hinterlegten Daten und Dokumente.
+    </p>
+</div>
+
+{% if not profile %}
+    <div class="rounded-xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+        Für diesen Zugang ist aktuell kein Kundenprofil hinterlegt. Bitte wenden Sie sich an Ihren Makler.
+    </div>
+{% else %}
+    <div class="grid gap-4 md:grid-cols-3 mb-6">
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:col-span-1">
+            <h2 class="text-sm font-semibold text-gray-900 mb-3">Meine Daten</h2>
+            <dl class="space-y-2 text-sm text-gray-700">
+                <div>
+                    <dt class="text-gray-500">Name</dt>
+                    <dd>{{ profile.first_name }} {{ profile.last_name }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">E-Mail</dt>
+                    <dd>{{ profile.email }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">Telefon</dt>
+                    <dd>{{ profile.phone|default:"–" }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">Adresse</dt>
+                    <dd>
+                        {% if profile.street or profile.postal_code or profile.city %}
+                            {{ profile.street }}<br>
+                            {{ profile.postal_code }} {{ profile.city }}
+                        {% else %}
+                            –
+                        {% endif %}
+                    </dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">Beschäftigungsstatus</dt>
+                    <dd>{{ profile.employment_status|default:"–" }}</dd>
+                </div>
+                <div>
+                    <dt class="text-gray-500">Monatliches Nettoeinkommen</dt>
+                    <dd>
+                        {% if profile.monthly_income %}
+                            {{ profile.monthly_income }} €
+                        {% else %}
+                            –
+                        {% endif %}
+                    </dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:col-span-2">
+            <div class="mb-3 flex items-center justify-between">
+                <h2 class="text-sm font-semibold text-gray-900">Meine Dokumente</h2>
+                <a href="{% url 'customer_document_self_add' %}"
+                   class="inline-flex items-center rounded-lg bg-indigo-600 px-3 py-2 text-xs font-medium text-white hover:bg-indigo-700">
+                    Dokument hochladen
+                </a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Erstellt
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Dateiname
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Download
+                            </th>
+                            <th class="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Aktionen
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        {% for doc in documents %}
+                            <tr>
+                                <td class="px-3 py-2 text-gray-700">
+                                    {{ doc.created_at|date:"d.m.Y H:i" }}
+                                </td>
+                                <td class="px-3 py-2 text-gray-700">
+                                    {{ doc.filename|default:"–" }}
+                                </td>
+                                <td class="px-3 py-2">
+                                    <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                                        {{ doc.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-2 text-gray-700">
+                                    {% if doc.generated_file %}
+                                        <a href="{{ doc.generated_file.url }}"
+                                           class="text-indigo-600 hover:text-indigo-800"
+                                           target="_blank">
+                                            Datei öffnen
+                                        </a>
+                                    {% elif doc.uploaded_file %}
+                                        <a href="{{ doc.uploaded_file.url }}"
+                                           class="text-indigo-600 hover:text-indigo-800"
+                                           target="_blank">
+                                            Datei öffnen
+                                        </a>
+                                    {% else %}
+                                        –
+                                    {% endif %}
+                                </td>
+                                <td class="px-3 py-2 text-right text-sm">
+                                    <a href="{% url 'customer_document_self_delete' doc.pk %}"
+                                       class="text-red-600 hover:text-red-800">
+                                        Löschen
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-3 py-4 text-center text-gray-500">
+                                    Es sind derzeit keine Dokumente für Sie hinterlegt.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+

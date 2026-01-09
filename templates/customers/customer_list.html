@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Kunden{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div>
+        <h1 class="text-2xl font-semibold text-gray-900">Kunden</h1>
+        <p class="text-sm text-gray-500">Übersicht aller Kunden dieses Maklers.</p>
+    </div>
+    <a href="{% url 'customer_create' %}"
+       class="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+        Neuen Kunden anlegen
+    </a>
+</div>
+
+<div class="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">E-Mail</th>
+                <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th class="px-4 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 bg-white">
+            {% for customer in customers %}
+                <tr>
+                    <td class="px-4 py-2 text-sm text-gray-900">
+                        <a href="{% url 'customer_detail' customer.pk %}" class="font-medium hover:text-indigo-600">
+                            {{ customer.last_name }}, {{ customer.first_name }}
+                        </a>
+                    </td>
+                    <td class="px-4 py-2 text-sm text-gray-600">{{ customer.email }}</td>
+                    <td class="px-4 py-2 text-sm">
+                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+                            {{ customer.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2 text-right text-sm">
+                        <a href="{% url 'customer_detail' customer.pk %}"
+                           class="text-indigo-600 hover:text-indigo-800 mr-3">Details</a>
+                        <a href="{% url 'customer_update' customer.pk %}"
+                           class="text-gray-600 hover:text-gray-800">Bearbeiten</a>
+                    </td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500">
+                        Noch keine Kunden angelegt. Legen Sie den ersten Kunden an, um den Invite-Flow zu testen.
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+
